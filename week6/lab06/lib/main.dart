@@ -4,6 +4,8 @@ import 'viewmodels/library_view_model.dart';
 import 'views/library_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final repository = LibraryRepository();
   final viewModel = LibraryViewModel(repository);
   

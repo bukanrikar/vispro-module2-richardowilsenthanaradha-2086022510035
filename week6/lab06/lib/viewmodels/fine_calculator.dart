@@ -27,8 +27,6 @@ class FineCalculator {
     final overdueDays = endDate.difference(loan.dueDate).inDays;
 
     if (overdueDays <= 0) return DisplayStatus.borrowed;
-
-    // 6 Month check
     final sixMonthsMark = DateTime(loan.dueDate.year, loan.dueDate.month + 6, loan.dueDate.day);
     if (endDate.isAfter(sixMonthsMark) || endDate.isAtSameMomentAs(sixMonthsMark)) {
       return DisplayStatus.missing;

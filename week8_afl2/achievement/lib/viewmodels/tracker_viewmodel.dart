@@ -1,24 +1,24 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/achievement_model.dart';
+import '../domain/achievement_repository.dart';
+import '../core/error_messages.dart';
 
 class TrackerViewModel extends ChangeNotifier {
-  static const _storageKey = 'steam_tracker_data';
+  final AchievementRepository _repository;
 
   List<GameTab> games = [];
   int selectedGameIndex = -1;
+  String? errorMessage;
 
-  TrackerViewModel() {
+  TrackerViewModel(this._repository) {
     _loadData();
   }
 
   Future<void> _loadData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? data = prefs.getString(_storageKey);
-      if (data != null) {
-        final Map<String, dynamic> parsed = jsonDecode(data);
+      errorMessage = null;
+      final parsed = await _repository.loadData();
+      if (parsed.isNotEmpty) {
         games = (parsed['games'] as List? ?? [])
             .map((g) => GameTab.fromJson(g as Map<String, dynamic>))
             .toList();
@@ -31,17 +31,19 @@ class TrackerViewModel extends ChangeNotifier {
     } catch (_) {
       games = [];
       selectedGameIndex = -1;
+      errorMessage = ErrorMessages.loadFailed;
     }
     notifyListeners();
   }
 
   Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = jsonEncode({
-      'games': games.map((g) => g.toJson()).toList(),
-      'selectedGameIndex': selectedGameIndex,
-    });
-    await prefs.setString(_storageKey, data);
+    try {
+      errorMessage = null;
+      await _repository.saveData(games, selectedGameIndex);
+    } catch (_) {
+      errorMessage = ErrorMessages.saveFailed;
+      notifyListeners();
+    }
   }
 
   void addGame(String name) {

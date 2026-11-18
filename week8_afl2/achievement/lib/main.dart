@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'data/shared_prefs_achievement_repository.dart';
+import 'viewmodels/tracker_viewmodel.dart';
 import 'view/tracker_screen.dart';
 
 void main() async {
@@ -19,11 +21,26 @@ void main() async {
     await windowManager.focus();
   });
 
-  runApp(const AchievementTrackerApp());
+  final repository = SharedPrefsAchievementRepository();
+  final viewModel = TrackerViewModel(repository);
+
+  runApp(AchievementTrackerApp(viewModel: viewModel));
 }
 
-class AchievementTrackerApp extends StatelessWidget {
-  const AchievementTrackerApp({super.key});
+class AchievementTrackerApp extends StatefulWidget {
+  final TrackerViewModel viewModel;
+  const AchievementTrackerApp({super.key, required this.viewModel});
+
+  @override
+  State<AchievementTrackerApp> createState() => _AchievementTrackerAppState();
+}
+
+class _AchievementTrackerAppState extends State<AchievementTrackerApp> {
+  @override
+  void dispose() {
+    widget.viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +65,7 @@ class AchievementTrackerApp extends StatelessWidget {
           textStyle: const TextStyle(color: Colors.white, fontSize: 12),
         ),
       ),
-      home: const TrackerScreen(),
+      home: TrackerScreen(vm: widget.viewModel),
     );
   }
 }
